@@ -3,17 +3,25 @@
 import { getManyToDo } from "@/actions/todo.actions";
 import TodoList from "./todo-list";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 const Todos = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+
   const {
     data: todos,
     isLoading,
     isError,
   } = useQuery({
     queryKey: ["todos"],
-    queryFn: () => getManyToDo(),
+    queryFn: async () => await getManyToDo(),
     staleTime: 1000 * 60 * 5,
   });
+
+  const filteredTodos =
+    todos?.todos?.filter((todo) =>
+      todo.message.toLowerCase().includes(searchTerm.toLowerCase()),
+    ) || [];
 
   if (isLoading) {
     return (
@@ -37,7 +45,19 @@ const Todos = () => {
     );
   }
 
-  return <TodoList todos={todos.todos} />;
+  return (
+    <div className="fixed top-4 right-4 w-full max-w-sm">
+      <input
+        type="text"
+        placeholder="Search todos..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full rounded-md border border-gray-300 p-2"
+      />
+
+      <TodoList todos={filteredTodos} />
+    </div>
+  );
 };
 
 export default Todos;
